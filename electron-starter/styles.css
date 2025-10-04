@@ -1,0 +1,197 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: transparent;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    -webkit-app-region: drag;
+}
+
+.game-panel {
+    background: rgba(15, 32, 56, 0.3);
+    backdrop-filter: blur(8px);
+    border-radius: 15px;
+    border: 2px solid rgba(100, 181, 246, 0.4);
+    padding: 15px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+    width: 100%;
+    max-width: 350px;
+}
+
+.panel-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-align: center;
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    -webkit-app-region: drag;
+    cursor: move;
+}
+
+.teammate-row {
+    display: flex;
+    margin-bottom: 10px;
+    align-items: center;
+}
+
+.teammate-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(0, 0, 0, 0.15);
+    padding: 8px;
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    position: relative;
+    width: 100%;
+    -webkit-app-region: no-drag;
+}
+
+.avatar-container {
+    position: relative;
+}
+
+.level-badge {
+    position: absolute;
+    bottom: -3px;
+    right: -3px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fbbf24;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 8px;
+    border: 2px solid rgba(251, 191, 36, 0.6);
+    min-width: 20px;
+    text-align: center;
+}
+
+.avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    flex-shrink: 0;
+}
+
+.teammate-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.toast-container {
+    position: fixed;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.toast {
+    background: rgba(15, 32, 56, 0.95);
+    backdrop-filter: blur(10px);
+    border: 2px solid rgba(100, 181, 246, 0.6);
+    border-radius: 10px;
+    padding: 12px 15px;
+    min-width: 220px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.7s;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.toast-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    background: linear-gradient(135deg, rgba(251, 191, 36, 0.3) 0%, rgba(245, 158, 11, 0.3) 100%);
+    border: 2px solid rgba(251, 191, 36, 0.6);
+    flex-shrink: 0;
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #fbbf24;
+    margin-bottom: 3px;
+}
+
+.toast-message {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(300px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.8; transform: scale(0.98); }
+}
+
+.avatar-1 { background: linear-gradient(135deg, rgba(240, 147, 251, 0.5) 0%, rgba(245, 87, 108, 0.5) 100%); }
+.avatar-2 { background: linear-gradient(135deg, rgba(79, 172, 254, 0.5) 0%, rgba(0, 242, 254, 0.5) 100%); }
+.avatar-3 { background: linear-gradient(135deg, rgba(67, 233, 123, 0.5) 0%, rgba(56, 249, 215, 0.5) 100%); }
+.avatar-4 { background: linear-gradient(135deg, rgba(250, 112, 154, 0.5) 0%, rgba(254, 225, 64, 0.5) 100%); }
+
+.loading {
+    text-align: center;
+    color: rgba(255, 255, 255, 0.6);
+    padding: 20px;
+    font-size: 12px;
+    -webkit-app-region: no-drag;
+}

@@ -3,8 +3,8 @@ const path = require('path');
 
 function createWindow() {
     const win = new BrowserWindow({
-        width: 900,
-        height: 600,
+        width: 400,
+        height: 350,
         transparent: true,
         frame: false,
         alwaysOnTop: true,
@@ -16,8 +16,8 @@ function createWindow() {
         }
     });
 
-    // Enable click-through (optional - remove if you want to interact with the overlay)
-    win.setIgnoreMouseEvents(true);
+    // Allow moving the window by dragging
+    win.setIgnoreMouseEvents(false);
 
     win.loadFile('index.html');
 
