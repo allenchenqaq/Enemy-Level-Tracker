@@ -1,0 +1,135 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: transparent;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  -webkit-app-region: drag; /* allow dragging the whole panel */
+}
+
+/* Panel */
+.game-panel {
+  background: rgba(15, 32, 56, 0.3);
+  backdrop-filter: blur(8px);
+  border-radius: 15px;
+  border: 2px solid rgba(100, 181, 246, 0.4);
+  padding: 15px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  width: 100%;
+  max-width: 360px;
+}
+
+.panel-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  text-align: center;
+  background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  -webkit-app-region: drag;
+  cursor: move;
+}
+
+.subtitle {
+  text-align: center;
+  color: rgba(255,255,255,0.85);
+  font-size: 12px;
+  margin-bottom: 10px;
+  letter-spacing: .4px;
+  -webkit-app-region: drag;
+}
+
+/* Content */
+.game-time {
+  color: #a9c6ff;
+  font-size: 12px;
+  margin-bottom: 8px;
+  -webkit-app-region: no-drag;
+}
+
+.teammate-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  -webkit-app-region: no-drag;
+}
+
+.teammate-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  position: relative;
+  width: 100%;
+}
+
+.avatar-container { position: relative; }
+
+.level-badge {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fbbf24;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  border-radius: 8px;
+  border: 2px solid rgba(251, 191, 36, 0.6);
+  min-width: 20px;
+  text-align: center;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, rgba(102,126,234,0.6) 0%, rgba(118,75,162,0.6) 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700; color: #fff;
+  border: 2px solid rgba(255,255,255,0.2);
+  flex-shrink: 0;
+}
+
+/* Alt avatar gradients */
+.avatar-1 { background: linear-gradient(135deg, rgba(240,147,251,0.5), rgba(245,87,108,0.5)); }
+.avatar-2 { background: linear-gradient(135deg, rgba(79,172,254,0.5), rgba(0,242,254,0.5)); }
+.avatar-3 { background: linear-gradient(135deg, rgba(67,233,123,0.5), rgba(56,249,215,0.5)); }
+.avatar-4 { background: linear-gradient(135deg, rgba(250,112,154,0.5), rgba(254,225,64,0.5)); }
+
+.teammate-text { display: flex; flex-direction: column; }
+.teammate-name { font-size: 13px; font-weight: 600; color: #fff; }
+.teammate-meta { font-size: 11px; color: rgba(255,255,255,0.75); margin-top: 2px; }
+
+.toast-container {
+  position: fixed;
+  top: 15px; right: 15px;
+  display: flex; flex-direction: column; gap: 8px;
+  z-index: 1000; pointer-events: none;
+}
+
+.toast {
+  background: rgba(15, 32, 56, 0.95);
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(100, 181, 246, 0.6);
+  border-radius: 10px;
+  padding: 12px 15px;
+  min-width: 220px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  animation: slideIn 0.3s ease-out, fadeOut 0.3s ease-in 2.5s;
+  display: flex; align-items: center; gap: 10px;
+}
+
+.toast-icon {
+  width: 30px; height: 30px; bor

@@ -1,3 +1,4 @@
+// main.js
 const { app, BrowserWindow } = require('electron');
 const https = require('https');
 
@@ -22,77 +23,79 @@ function fetchAllGameData() {
   });
 }
 
-// --- NEW: helpers to parse levels ---
 function extractChampionLevels(data) {
   if (!data || !Array.isArray(data.allPlayers)) return [];
-  // Build simple rows for console.table
-
   const chaosPlayers = data.allPlayers.filter(p => p.team === 'CHAOS' && p.level >= 6);
-
   const rows = chaosPlayers.map(p => ({
     Team: p.team,
     Champion: p.championName,
     Level: p.level,
     Dead: p.isDead ? `yes (${p.respawnTimer.toFixed(1)}s)` : 'no',
+    Position: p.position || 'NONE',
     Summoner: p.riotId || p.summonerName
   }));
-  // Optional: stable ordering (team, then position if present, then name)
-  const posOrder = ['TOP','JUNGLE','MIDDLE','BOTTOM','UTILITY','NONE'];
-  rows.sort((a, b) => {
-    if (a.Team !== b.Team) return a.Team.localeCompare(b.Team);
-    const pa = posOrder.indexOf(
-      (data.allPlayers.find(p => p.riotId === a.Summoner || p.summonerName === a.Summoner)?.position) || 'NONE'
-    );
-    const pb = posOrder.indexOf(
-      (data.allPlayers.find(p => p.riotId === b.Summoner || p.summonerName === b.Summoner)?.position) || 'NONE'
-    );
-    if (pa !== pb) return pa - pb;
-    return a.Champion.localeCompare(b.Champion);
-  });
+  rows.sort((a, b) => b.Level - a.Level || a.Champion.localeCompare(b.Champion));
   return rows;
 }
 
-function startPolling() {
+function startPolling(win) {
   const poll = async () => {
     try {
       const data = await fetchAllGameData();
 
-      // Clear and print header line with game time if available
-      console.clear();
       const t = data?.gameData?.gameTime;
+      let timeStr = '--:--';
       if (typeof t === 'number') {
         const mm = Math.floor(t / 60);
         const ss = Math.floor(t % 60).toString().padStart(2, '0');
-        console.log(`⏱️  Game Time ${mm}:${ss}`);
+        timeStr = `${mm}:${ss}`;
       }
 
-      // --- NEW: print champion levels as a table ---
       const rows = extractChampionLevels(data);
-      if (rows.length) {
-        console.table(rows);
-      } else {
-        console.log('No player data yet.');
-      }
+
+      if (!win || win.isDestroyed()) return;
+      await win.webContents.executeJavaScript(`
+        window.updateTable(${JSON.stringify(rows)}, ${JSON.stringify(timeStr)});
+      `);
     } catch (err) {
-      console.log('Fetch failed:', err.message);
+      if (!win || win.isDestroyed()) return;
+      await win.webContents.executeJavaScript(`
+        window.showError(${JSON.stringify(err.message)});
+      `);
     } finally {
-      setTimeout(poll, POLL_MS);
+      if (win && !win.isDestroyed()) setTimeout(poll, POLL_MS);
     }
   };
   poll();
 }
 
-async function createWindow() {
+function createWindow() {
   const win = new BrowserWindow({
-    width: 600,
-    height: 400,
+    width: 720,
+    height: 520,
     alwaysOnTop: true,
-    transparent: true,
-    webPreferences: { nodeIntegration: true }
+    transparent: false,
+    // if you use draggable body in CSS, keep contextIsolation on and no nodeIntegration
+    webPreferences: { nodeIntegration: false, contextIsolation: true }
   });
-  win.loadURL('data:text/html,<h2>League Live Data Logger Running...</h2>');
-  startPolling();
+
+  win.loadFile('index.html');
+
+  // Ensure renderer defined window.updateTable/showError before we start polling
+  win.webContents.once('dom-ready', () => {
+    startPolling(win);
+  });
+
+  return win;
 }
 
 app.whenReady().then(createWindow);
-app.on('window-all-closed', () => { if (process.platform !== 'darwin') app.quit(); });
+
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
+
+app.on('activate', () => {
+  // macOS: re-create a window when the dock icon is clicked and there are no other windows open.
+  if (BrowserWindow.getAllWindows().length === 0) createWindow();
+});

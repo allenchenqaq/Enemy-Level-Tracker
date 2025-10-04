@@ -1,137 +1,122 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Tracker</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Team Tracker</title>
+  <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
-    <div class="toast-container" id="toastContainer"></div>
-    
-    <div class="game-panel">
-        <div class="panel-title">Team Tracker</div>
-        <div id="teamContainer" class="loading">Loading team data...</div>
-    </div>
+  <!-- Toasts -->
+  <div class="toast-container" id="toastContainer"></div>
 
-    <script>
-        // Store previous state to detect changes
-        let previousData = {};
+  <!-- Panel -->
+  <div class="game-panel">
+    <div class="panel-title">Team Tracker</div>
+    <div class="subtitle" id="subtitle">CHAOS Team • Level ≥ 6</div>
 
-        // Toast notification system
-        function showToast(playerName, level) {
-            const container = document.getElementById('toastContainer');
-            
-            const toast = document.createElement('div');
-            toast.className = 'toast';
-            
-            const icon = document.createElement('div');
-            icon.className = 'toast-icon';
-            icon.textContent = '⬆️';
-            
-            const content = document.createElement('div');
-            content.className = 'toast-content';
-            
-            const title = document.createElement('div');
-            title.className = 'toast-title';
-            title.textContent = 'Level Up!';
-            
-            const message = document.createElement('div');
-            message.className = 'toast-message';
-            message.textContent = `${playerName} is level ${level} now`;
-            
-            content.appendChild(title);
-            content.appendChild(message);
-            toast.appendChild(icon);
-            toast.appendChild(content);
-            container.appendChild(toast);
-            
-            // Auto remove after 3 seconds
-            setTimeout(() => {
-                toast.remove();
-            }, 3000);
+    <!-- Content -->
+    <div id="teamContainer" class="loading">Waiting for data…</div>
+  </div>
+
+  <script>
+    // Keep prior state for level-up toasts
+    const previousBySummoner = Object.create(null);
+
+    function showToast(playerName, level) {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.innerHTML = `
+        <div class="toast-icon">⬆️</div>
+        <div class="toast-content">
+          <div class="toast-title">Level Up!</div>
+          <div class="toast-message">${playerName} is level ${level} now</div>
+        </div>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => toast.remove(), 2800);
+    }
+
+    // Called from main.js on every poll
+    // rows = [{ Champion, Level, Dead, Position, Summoner, Team }]
+    // gameTime = "mm:ss"
+    window.updateTable = function (rows, gameTime) {
+      const container = document.getElementById("teamContainer");
+      container.classList.remove("loading");
+      container.innerHTML = "";
+
+      // Header line with time
+      const time = document.createElement("div");
+      time.className = "game-time";
+      time.textContent = `⏱️ Game Time ${gameTime || "--:--"}`;
+      container.appendChild(time);
+
+      if (!rows || rows.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No CHAOS players above level 6 yet.";
+        container.appendChild(empty);
+        return;
+      }
+
+      // Render each player row
+      rows.forEach((p, idx) => {
+        // toast if the same Summoner leveled up
+        const prev = previousBySummoner[p.Summoner];
+        if (prev && Number(prev.Level) < Number(p.Level)) {
+          showToast(p.Champion ?? "Player", p.Level ?? "?");
         }
 
-        // Update UI with team data from JSON
-        function updateTeamData(teamData) {
-            const container = document.getElementById('teamContainer');
-            container.innerHTML = '';
-            container.classList.remove('loading');
+        const row = document.createElement("div");
+        row.className = "teammate-row";
 
-            teamData.forEach((player, index) => {
-                // Check if level increased for notification
-                if (previousData[player.id] && previousData[player.id].level < player.level) {
-                    showToast(player.name, player.level);
-                }
+        const info = document.createElement("div");
+        info.className = "teammate-info"; // no-drag in CSS
 
-                // Create player row
-                const row = document.createElement('div');
-                row.className = 'teammate-row';
+        const avatarWrap = document.createElement("div");
+        avatarWrap.className = "avatar-container";
 
-                const info = document.createElement('div');
-                info.className = 'teammate-info';
+        const avatar = document.createElement("div");
+        avatar.className = `avatar avatar-${(idx % 4) + 1}`;
+        avatar.textContent = (p.Champion || "?").charAt(0).toUpperCase();
 
-                const avatarContainer = document.createElement('div');
-                avatarContainer.className = 'avatar-container';
+        const badge = document.createElement("div");
+        badge.className = "level-badge";
+        badge.textContent = String(p.Level ?? "-");
 
-                const avatar = document.createElement('div');
-                avatar.className = `avatar avatar-${(index % 4) + 1}`;
-                avatar.textContent = player.name.charAt(0).toUpperCase();
+        const name = document.createElement("div");
+        name.className = "teammate-name";
+        name.textContent = `${p.Champion ?? "Unknown"} • ${p.Position ?? "NONE"}`;
 
-                const levelBadge = document.createElement('div');
-                levelBadge.className = 'level-badge';
-                levelBadge.textContent = player.level;
+        const meta = document.createElement("div");
+        meta.className = "teammate-meta";
+        meta.textContent = (p.Dead === "no") ? "Alive" : `Dead ${String(p.Dead || "").replace("yes ", "")}`;
 
-                const name = document.createElement('div');
-                name.className = 'teammate-name';
-                name.textContent = player.name;
+        avatarWrap.appendChild(avatar);
+        avatarWrap.appendChild(badge);
 
-                avatarContainer.appendChild(avatar);
-                avatarContainer.appendChild(levelBadge);
-                info.appendChild(avatarContainer);
-                info.appendChild(name);
-                row.appendChild(info);
-                container.appendChild(row);
+        const infoText = document.createElement("div");
+        infoText.className = "teammate-text";
+        infoText.appendChild(name);
+        infoText.appendChild(meta);
 
-                // Store current state
-                previousData[player.id] = { level: player.level };
-            });
-        }
+        info.appendChild(avatarWrap);
+        info.appendChild(infoText);
 
-        // Fetch data from API
-        async function fetchTeamData() {
-            try {
-                const response = await fetch('http://localhost:3000/api/team');
-                const data = await response.json();
-                updateTeamData(data);
-            } catch (error) {
-                console.error('Error fetching team data:', error);
-                document.getElementById('teamContainer').innerHTML = 
-                    '<div class="loading">Failed to load data</div>';
-            }
-        }
+        row.appendChild(info);
+        container.appendChild(row);
 
-        // Poll for updates every 2 seconds
-        fetchTeamData();
-        setInterval(fetchTeamData, 2000);
+        // store latest snapshot for toasts
+        previousBySummoner[p.Summoner] = p;
+      });
+    };
 
-        // Example: Use mock data if API is not available
-        // Uncomment below to test with mock data
-        /*
-        const mockData = [
-            { id: 1, name: "Player Alpha", level: 6 },
-            { id: 2, name: "Player Bravo", level: 11 },
-            { id: 3, name: "Player Charlie", level: 8 },
-            { id: 4, name: "Player Delta", level: 15 }
-        ];
-        updateTeamData(mockData);
-        
-        // Simulate level up after 3 seconds
-        setTimeout(() => {
-            mockData[0].level = 7;
-            updateTeamData(mockData);
-        }, 3000);
-        */
-    </script>
+    // Called from main.js when a poll fails
+    window.showError = function (message) {
+      const container = document.getElementById("teamContainer");
+      container.innerHTML = `<div class="error">Error: ${message}</div>`;
+    };
+  </script>
 </body>
 </html>
