@@ -1,0 +1,15 @@
+{
+  "name": "cooldown-tracker-overlay",
+  "version": "1.0.0",
+  "description": "Transparent overlay for team cooldown tracking",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "keywords": ["overlay", "gaming", "cooldown"],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^28.0.0"
+  }
+}
