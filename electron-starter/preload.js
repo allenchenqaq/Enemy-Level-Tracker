@@ -1,6 +1,10 @@
-// preload.js
-import { contextBridge } from 'electron';
+const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('api', {
-  ping: () => 'pong'
+console.log('[preload] loaded');
+
+contextBridge.exposeInMainWorld('riot', {
+  getAllGameData: () => {
+    console.log('[preload] invoking riot:getAllGameData');
+    return ipcRenderer.invoke('riot:getAllGameData');
+  }
 });
