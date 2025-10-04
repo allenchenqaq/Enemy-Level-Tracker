@@ -1,15 +1,20 @@
 {
-  "name": "cooldown-tracker-overlay",
+  "name": "team-tracker-overlay",
   "version": "1.0.0",
-  "description": "Transparent overlay for team cooldown tracking",
+  "description": "Transparent overlay for team tracking with API integration",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "electron .",
+    "server": "node server.js"
   },
-  "keywords": ["overlay", "gaming", "cooldown"],
+  "keywords": ["overlay", "gaming", "tracker"],
   "author": "Your Name",
   "license": "MIT",
   "devDependencies": {
     "electron": "^28.0.0"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
   }
 }

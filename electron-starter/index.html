@@ -3,344 +3,135 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Cooldown Tracker</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: transparent;
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            -webkit-app-region: drag;
-        }
-
-        .game-panel {
-            background: rgba(15, 32, 56, 0.3);
-            backdrop-filter: blur(8px);
-            border-radius: 20px;
-            border: 2px solid rgba(100, 181, 246, 0.4);
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            max-width: 800px;
-            width: 100%;
-            -webkit-app-region: no-drag;
-        }
-
-        .panel-title {
-            font-size: 24px;
-            font-weight: 700;
-            color: #fff;
-            margin-bottom: 25px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            text-align: center;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .cooldown-header {
-            display: grid;
-            grid-template-columns: 200px repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .skill-header {
-            text-align: center;
-            font-size: 16px;
-            font-weight: 700;
-            color: #64b5f6;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .teammate-row {
-            display: grid;
-            grid-template-columns: 200px repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 15px;
-            align-items: center;
-        }
-
-        .teammate-info {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            background: rgba(0, 0, 0, 0.15);
-            padding: 10px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-        }
-
-        .avatar {
-            width: 45px;
-            height: 45px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.6) 0%, rgba(118, 75, 162, 0.6) 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-            font-weight: 700;
-            color: #fff;
-            border: 2px solid rgba(255, 255, 255, 0.2);
-            flex-shrink: 0;
-        }
-
-        .teammate-name {
-            font-size: 15px;
-            font-weight: 600;
-            color: #fff;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .cooldown-cell {
-            position: relative;
-            height: 65px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 10px;
-            border: 2px solid rgba(255, 255, 255, 0.15);
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-
-        .cooldown-cell:hover {
-            border-color: rgba(100, 181, 246, 0.5);
-            transform: scale(1.05);
-        }
-
-        .cooldown-progress {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: linear-gradient(180deg, rgba(100, 181, 246, 0.3) 0%, rgba(33, 150, 243, 0.5) 100%);
-            transition: height 0.5s ease;
-        }
-
-        .cooldown-progress.ready {
-            background: linear-gradient(180deg, rgba(76, 175, 80, 0.3) 0%, rgba(46, 125, 50, 0.5) 100%);
-        }
-
-        .cooldown-progress.ultimate {
-            background: linear-gradient(180deg, rgba(255, 193, 7, 0.3) 0%, rgba(255, 152, 0, 0.5) 100%);
-        }
-
-        .cooldown-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 16px;
-            font-weight: 700;
-            color: #fff;
-            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
-        }
-
-        .skill-key {
-            position: absolute;
-            top: 5px;
-            left: 5px;
-            background: rgba(0, 0, 0, 0.4);
-            color: #64b5f6;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .overlay-indicator {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            background: rgba(244, 63, 94, 0.9);
-            color: white;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            box-shadow: 0 4px 16px rgba(244, 63, 94, 0.5);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.8; transform: scale(0.98); }
-        }
-
-        .avatar-1 { background: linear-gradient(135deg, rgba(240, 147, 251, 0.5) 0%, rgba(245, 87, 108, 0.5) 100%); }
-        .avatar-2 { background: linear-gradient(135deg, rgba(79, 172, 254, 0.5) 0%, rgba(0, 242, 254, 0.5) 100%); }
-        .avatar-3 { background: linear-gradient(135deg, rgba(67, 233, 123, 0.5) 0%, rgba(56, 249, 215, 0.5) 100%); }
-        .avatar-4 { background: linear-gradient(135deg, rgba(250, 112, 154, 0.5) 0%, rgba(254, 225, 64, 0.5) 100%); }
-    </style>
+    <title>Team Tracker</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div class="overlay-indicator">● LIVE TRACKER</div>
+    <div class="toast-container" id="toastContainer"></div>
     
     <div class="game-panel">
-        <div class="panel-title">Team Cooldown Tracker</div>
-        
-        <div class="cooldown-header">
-            <div></div>
-            <div class="skill-header">Q</div>
-            <div class="skill-header">W</div>
-            <div class="skill-header">E</div>
-            <div class="skill-header">R</div>
-        </div>
-
-        <div class="teammate-row">
-            <div class="teammate-info">
-                <div class="avatar avatar-1">A</div>
-                <div class="teammate-name">Player Alpha</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">Q</div>
-                <div class="cooldown-progress ready" style="height: 100%"></div>
-                <div class="cooldown-text">Ready</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">W</div>
-                <div class="cooldown-progress" style="height: 45%"></div>
-                <div class="cooldown-text">3.2s</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">E</div>
-                <div class="cooldown-progress" style="height: 70%"></div>
-                <div class="cooldown-text">5.8s</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">R</div>
-                <div class="cooldown-progress ultimate" style="height: 15%"></div>
-                <div class="cooldown-text">45s</div>
-            </div>
-        </div>
-
-        <div class="teammate-row">
-            <div class="teammate-info">
-                <div class="avatar avatar-2">B</div>
-                <div class="teammate-name">Player Bravo</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">Q</div>
-                <div class="cooldown-progress" style="height: 80%"></div>
-                <div class="cooldown-text">2.1s</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">W</div>
-                <div class="cooldown-progress ready" style="height: 100%"></div>
-                <div class="cooldown-text">Ready</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">E</div>
-                <div class="cooldown-progress" style="height: 25%"></div>
-                <div class="cooldown-text">8.4s</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">R</div>
-                <div class="cooldown-progress ultimate ready" style="height: 100%"></div>
-                <div class="cooldown-text">Ready</div>
-            </div>
-        </div>
-
-        <div class="teammate-row">
-            <div class="teammate-info">
-                <div class="avatar avatar-3">C</div>
-                <div class="teammate-name">Player Charlie</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">Q</div>
-                <div class="cooldown-progress" style="height: 60%"></div>
-                <div class="cooldown-text">4.5s</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">W</div>
-                <div class="cooldown-progress" style="height: 35%"></div>
-                <div class="cooldown-text">6.7s</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">E</div>
-                <div class="cooldown-progress ready" style="height: 100%"></div>
-                <div class="cooldown-text">Ready</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">R</div>
-                <div class="cooldown-progress ultimate" style="height: 50%"></div>
-                <div class="cooldown-text">32s</div>
-            </div>
-        </div>
-
-        <div class="teammate-row">
-            <div class="teammate-info">
-                <div class="avatar avatar-4">D</div>
-                <div class="teammate-name">Player Delta</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">Q</div>
-                <div class="cooldown-progress ready" style="height: 100%"></div>
-                <div class="cooldown-text">Ready</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">W</div>
-                <div class="cooldown-progress ready" style="height: 100%"></div>
-                <div class="cooldown-text">Ready</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">E</div>
-                <div class="cooldown-progress" style="height: 90%"></div>
-                <div class="cooldown-text">1.2s</div>
-            </div>
-            <div class="cooldown-cell">
-                <div class="skill-key">R</div>
-                <div class="cooldown-progress ultimate" style="height: 20%"></div>
-                <div class="cooldown-text">78s</div>
-            </div>
-        </div>
+        <div class="panel-title">Team Tracker</div>
+        <div id="teamContainer" class="loading">Loading team data...</div>
     </div>
 
     <script>
-        // Optional: Add dynamic cooldown updates here
-        // Example function to update cooldown
-        function updateCooldown(row, skill, time, percentage) {
-            const rows = document.querySelectorAll('.teammate-row');
-            const targetRow = rows[row];
-            const skills = ['q', 'w', 'e', 'r'];
-            const skillIndex = skills.indexOf(skill.toLowerCase());
+        // Store previous state to detect changes
+        let previousData = {};
+
+        // Toast notification system
+        function showToast(playerName, level) {
+            const container = document.getElementById('toastContainer');
             
-            if (targetRow && skillIndex >= 0) {
-                const cells = targetRow.querySelectorAll('.cooldown-cell');
-                const cell = cells[skillIndex];
-                const progress = cell.querySelector('.cooldown-progress');
-                const text = cell.querySelector('.cooldown-text');
-                
-                progress.style.height = percentage + '%';
-                text.textContent = time === 0 ? 'Ready' : time + 's';
-                
-                if (time === 0) {
-                    progress.classList.add('ready');
-                } else {
-                    progress.classList.remove('ready');
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            
+            const icon = document.createElement('div');
+            icon.className = 'toast-icon';
+            icon.textContent = '⬆️';
+            
+            const content = document.createElement('div');
+            content.className = 'toast-content';
+            
+            const title = document.createElement('div');
+            title.className = 'toast-title';
+            title.textContent = 'Level Up!';
+            
+            const message = document.createElement('div');
+            message.className = 'toast-message';
+            message.textContent = `${playerName} is level ${level} now`;
+            
+            content.appendChild(title);
+            content.appendChild(message);
+            toast.appendChild(icon);
+            toast.appendChild(content);
+            container.appendChild(toast);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Update UI with team data from JSON
+        function updateTeamData(teamData) {
+            const container = document.getElementById('teamContainer');
+            container.innerHTML = '';
+            container.classList.remove('loading');
+
+            teamData.forEach((player, index) => {
+                // Check if level increased for notification
+                if (previousData[player.id] && previousData[player.id].level < player.level) {
+                    showToast(player.name, player.level);
                 }
+
+                // Create player row
+                const row = document.createElement('div');
+                row.className = 'teammate-row';
+
+                const info = document.createElement('div');
+                info.className = 'teammate-info';
+
+                const avatarContainer = document.createElement('div');
+                avatarContainer.className = 'avatar-container';
+
+                const avatar = document.createElement('div');
+                avatar.className = `avatar avatar-${(index % 4) + 1}`;
+                avatar.textContent = player.name.charAt(0).toUpperCase();
+
+                const levelBadge = document.createElement('div');
+                levelBadge.className = 'level-badge';
+                levelBadge.textContent = player.level;
+
+                const name = document.createElement('div');
+                name.className = 'teammate-name';
+                name.textContent = player.name;
+
+                avatarContainer.appendChild(avatar);
+                avatarContainer.appendChild(levelBadge);
+                info.appendChild(avatarContainer);
+                info.appendChild(name);
+                row.appendChild(info);
+                container.appendChild(row);
+
+                // Store current state
+                previousData[player.id] = { level: player.level };
+            });
+        }
+
+        // Fetch data from API
+        async function fetchTeamData() {
+            try {
+                const response = await fetch('http://localhost:3000/api/team');
+                const data = await response.json();
+                updateTeamData(data);
+            } catch (error) {
+                console.error('Error fetching team data:', error);
+                document.getElementById('teamContainer').innerHTML = 
+                    '<div class="loading">Failed to load data</div>';
             }
         }
 
-        // Example usage:
-        // updateCooldown(0, 'Q', 0, 100); // Player 1, Q skill ready
-        // updateCooldown(1, 'R', 35, 40); // Player 2, R skill 35s cooldown, 40% progress
+        // Poll for updates every 2 seconds
+        fetchTeamData();
+        setInterval(fetchTeamData, 2000);
+
+        // Example: Use mock data if API is not available
+        // Uncomment below to test with mock data
+        /*
+        const mockData = [
+            { id: 1, name: "Player Alpha", level: 6 },
+            { id: 2, name: "Player Bravo", level: 11 },
+            { id: 3, name: "Player Charlie", level: 8 },
+            { id: 4, name: "Player Delta", level: 15 }
+        ];
+        updateTeamData(mockData);
+        
+        // Simulate level up after 3 seconds
+        setTimeout(() => {
+            mockData[0].level = 7;
+            updateTeamData(mockData);
+        }, 3000);
+        */
     </script>
 </body>
 </html>
