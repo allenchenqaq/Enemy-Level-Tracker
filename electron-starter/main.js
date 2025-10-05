@@ -23,45 +23,48 @@ function fetchAllGameData() {
   });
 }
 
-function extractChampionLevels(data) {
+// Track which players have already been notified about reaching level 6
+const notifiedPlayers = new Set();
+
+function checkForLevel6Players(data) {
   if (!data || !Array.isArray(data.allPlayers)) return [];
-  const chaosPlayers = data.allPlayers.filter(p => p.team === 'CHAOS' && p.level >= 6);
-  const rows = chaosPlayers.map(p => ({
-    Team: p.team,
-    Champion: p.championName,
-    Level: p.level,
-    Dead: p.isDead ? `yes (${p.respawnTimer.toFixed(1)}s)` : 'no',
-    Position: p.position || 'NONE',
-    Summoner: p.riotId || p.summonerName
-  }));
-  rows.sort((a, b) => b.Level - a.Level || a.Champion.localeCompare(b.Champion));
-  return rows;
+  
+  const notifications = [];
+  const chaosPlayers = data.allPlayers.filter(p => p.team === 'CHAOS');
+  
+  chaosPlayers.forEach(player => {
+    const playerId = player.riotId || player.summonerName;
+    const key = `${playerId}`;
+    
+    // If player just reached level 6 and we haven't notified yet
+    if (player.level === 6 && !notifiedPlayers.has(key)) {
+      notifiedPlayers.add(key);
+      notifications.push({
+        Champion: player.championName,
+        Summoner: playerId,
+        Position: player.position || 'NONE'
+      });
+    }
+  });
+  
+  return notifications;
 }
 
 function startPolling(win) {
   const poll = async () => {
     try {
       const data = await fetchAllGameData();
+      const newLevel6Players = checkForLevel6Players(data);
 
-      const t = data?.gameData?.gameTime;
-      let timeStr = '--:--';
-      if (typeof t === 'number') {
-        const mm = Math.floor(t / 60);
-        const ss = Math.floor(t % 60).toString().padStart(2, '0');
-        timeStr = `${mm}:${ss}`;
+      // Send notifications for each new level 6 player
+      if (!win || win.isDestroyed()) return;
+      for (const player of newLevel6Players) {
+        await win.webContents.executeJavaScript(`
+          window.showLevel6Notification(${JSON.stringify(player)});
+        `);
       }
-
-      const rows = extractChampionLevels(data);
-
-      if (!win || win.isDestroyed()) return;
-      await win.webContents.executeJavaScript(`
-        window.updateTable(${JSON.stringify(rows)}, ${JSON.stringify(timeStr)});
-      `);
     } catch (err) {
-      if (!win || win.isDestroyed()) return;
-      await win.webContents.executeJavaScript(`
-        window.showError(${JSON.stringify(err.message)});
-      `);
+      // Silently continue polling even on errors (game might not be running)
     } finally {
       if (win && !win.isDestroyed()) setTimeout(poll, POLL_MS);
     }
@@ -71,17 +74,19 @@ function startPolling(win) {
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 720,
-    height: 520,
+    width: 350,
+    height: 150,
     alwaysOnTop: true,
-    transparent: false,
-    // if you use draggable body in CSS, keep contextIsolation on and no nodeIntegration
+    transparent: true,
+    frame: false,
+    hasShadow: false,
+    resizable: false,
     webPreferences: { nodeIntegration: false, contextIsolation: true }
   });
 
   win.loadFile('index.html');
 
-  // Ensure renderer defined window.updateTable/showError before we start polling
+  // Ensure renderer is ready before we start polling
   win.webContents.once('dom-ready', () => {
     startPolling(win);
   });
