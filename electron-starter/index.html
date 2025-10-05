@@ -4,7 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Level 6 Tracker</title>
-  <style>
+  <link rel="stylesheet" href="styles.css"/>
+  <!-- <style>
     body { margin:0; background:transparent; font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif; }
     .status-indicator { position: fixed; top: 10px; left: 10px; display:flex; gap:8px; padding:8px 10px; border-radius:8px; background: rgba(0,0,0,0.35); color:#e6f0ff; }
     .toast-container { position: fixed; top: 15px; right: 15px; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
@@ -12,53 +13,25 @@
     .toast-icon { width:30px; height:30px; display:flex; align-items:center; justify-content:center; border-radius:50%; background: rgba(251,191,36,0.25); border: 2px solid rgba(251,191,36,0.6); }
     .toast-title { font-weight:700; color:#fbbf24; font-size:12px; }
     .toast-message { font-size:12px; opacity:0.95; }
-  </style>
+  </style> -->
 </head>
 <body>
-  <div class="status-indicator" id="statusIndicator">
-    <div class="status-text">Monitoring...</div>
-  </div>
+  <div class="draggable">
+    <div class="status-indicator" id="statusIndicator">
+      <div class="status-text">Monitoring...</div>
+    </div>
 
-  <div class="toast-container" id="toastContainer"></div>
-
-  <!-- <script>
-    // Called from main.js when a player reaches level 6
-    // player = { Champion, Summoner, Position }
-    window.showLevel6Notification = function (player) {
-      const container = document.getElementById("toastContainer");
-      const toast = document.createElement("div");
-      toast.className = "toast";
-      
-      const championName = player.Champion || "Unknown";
-      const position = player.Position || "NONE";
-      
-      toast.innerHTML = `
-        <div class="toast-icon">⚡</div>
-        <div class="toast-content">
-          <div class="toast-title">LEVEL 6 REACHED!</div>
-          <div class="toast-message">${champ} (${pos}) has ultimate ready!</div>
-        </div>
-      `;
-      container.appendChild(toast);
-      document.getElementById('statusIndicator').style.display = 'none';
-      setTimeout(() => {
-        toast.remove();
-        if (!container.querySelector('.toast')) {
-          document.getElementById('statusIndicator').style.display = 'flex';
-        }
-      }, 3500);
-    };
-  </script> -->
+    <div class="toast-container" id="toastContainer"></div>
+</div>
   <script>
-  // Generic: called from main.js with the level reached (6, 11, or 16)
-  // player = { Champion, Summoner, Position }
-    window.showLevelNotification = function (player, level) {
+    window.showTierNotification = function (player) {
       const container = document.getElementById("toastContainer");
       const toast = document.createElement("div");
       toast.className = "toast";
 
       const championName = player?.Champion || "Unknown";
       const position = player?.Position || "NONE";
+      const level = player?.LevelReached || "Undefined";
 
       toast.innerHTML = `
         <div class="toast-icon">⚡</div>

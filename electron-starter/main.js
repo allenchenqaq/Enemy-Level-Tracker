@@ -113,6 +113,9 @@ let win;
 const POLL_MS = 500;
 const THRESHOLDS = [6, 11, 16]; // notify at these levels
 
+// const notifiedPlayers = new Set();
+// const previousLevels = new Map();
+
 // ---- Live Client fetch ----
 function fetchAllGameData() {
   return new Promise((resolve, reject) => {
@@ -169,7 +172,7 @@ function collectNewTierNotifications(data) {
     }
 
     // Update previous
-    previousLevels.set(key, cur);
+    // previousLevels.set(key, cur);
   });
 
   return out;
@@ -177,31 +180,33 @@ function collectNewTierNotifications(data) {
 
 // ---- Polling loop ----
 function startPolling(win) {
-  const poll = async () => {
-    try {
-      const data = await fetchAllGameData();
-      const toNotify = collectNewTierNotifications(data);
-
-      if (!win || win.isDestroyed()) return;
-      for (const player of newLevel6Players) {
-        await win.webContents.executeJavaScript(`
-          window.showLevel6Notification(${JSON.stringify(player)});
-        `);
+    const poll = async () => {
+      try {
+        const data = await fetchAllGameData();
+        const toNotify = collectNewTierNotifications(data);
+  
+        if (!win || win.isDestroyed()) return;
+  
+        // ✅ loop the right variable (toNotify), not newLevel6Players
+        for (const player of toNotify) {
+          await win.webContents.executeJavaScript(
+            `window.showTierNotification(${JSON.stringify(player)})`
+          );
+        }
+      } catch (err) {
+        console.log('[poll] fetch error:', err.message);
+      } finally {
+        if (win && !win.isDestroyed()) setTimeout(poll, POLL_MS);
       }
-    } catch (err) {
-      console.log('[poll] fetch error:', err.message);
-    } finally {
-      if (win && !win.isDestroyed()) setTimeout(poll, POLL_MS);
-    }
-  };
-  poll();
-}
+    };
+    poll();
+  }
 
 // ---- Window ----
 function createWindow() {
   const win = new BrowserWindow({
     width: 350,
-    height: 400,
+    height: 200,
     alwaysOnTop: true,
     transparent: true,
     frame: false,
