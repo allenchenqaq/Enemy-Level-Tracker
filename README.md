@@ -37,8 +37,5 @@ cd Enemy-Level-Tracker
 npm install
 # or: pnpm install
 
-# run (dev)
-npm run dev
-
-# build (if provided)
-npm run build
+# run
+npm start
