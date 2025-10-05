@@ -21,13 +21,17 @@
 
   <div class="toast-container" id="toastContainer"></div>
 
-  <script>
-    window.showLevel6Notification = function(player) {
-      const container = document.getElementById('toastContainer');
-      const toast = document.createElement('div');
-      toast.className = 'toast';
-      const champ = player?.Champion ?? 'Unknown';
-      const pos = player?.Position ?? 'NONE';
+  <!-- <script>
+    // Called from main.js when a player reaches level 6
+    // player = { Champion, Summoner, Position }
+    window.showLevel6Notification = function (player) {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      
+      const championName = player.Champion || "Unknown";
+      const position = player.Position || "NONE";
+      
       toast.innerHTML = `
         <div class="toast-icon">⚡</div>
         <div class="toast-content">
@@ -44,6 +48,44 @@
         }
       }, 3500);
     };
+  </script> -->
+  <script>
+  // Generic: called from main.js with the level reached (6, 11, or 16)
+  // player = { Champion, Summoner, Position }
+    window.showLevelNotification = function (player, level) {
+      const container = document.getElementById("toastContainer");
+      const toast = document.createElement("div");
+      toast.className = "toast";
+
+      const championName = player?.Champion || "Unknown";
+      const position = player?.Position || "NONE";
+
+      toast.innerHTML = `
+        <div class="toast-icon">⚡</div>
+        <div class="toast-content">
+          <div class="toast-title">LEVEL ${level} REACHED!</div>
+          <div class="toast-message">${championName} (${position}) power spike</div>
+        </div>
+      `;
+
+      container.appendChild(toast);
+
+      // Temporarily hide idle status while showing a toast
+      document.getElementById('statusIndicator').style.display = 'none';
+
+      setTimeout(() => {
+        toast.remove();
+        if (container.querySelectorAll('.toast').length === 0) {
+          document.getElementById('statusIndicator').style.display = 'flex';
+        }
+      }, 3500);
+    };
+
+    // Backward compatibility: if something still calls this
+    window.showLevel6Notification = function (player) {
+      window.showLevelNotification(player, 6);
+    };
   </script>
+
 </body>
 </html>
