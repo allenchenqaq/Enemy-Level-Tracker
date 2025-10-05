@@ -1,9 +1,10 @@
-// main.js
 const { app, BrowserWindow } = require('electron');
 const https = require('https');
 
+let win;
 const POLL_MS = 500;
 
+// ---- Live Client fetch ----
 function fetchAllGameData() {
   return new Promise((resolve, reject) => {
     const req = https.request(
@@ -23,48 +24,75 @@ function fetchAllGameData() {
   });
 }
 
-// Track which players have already been notified about reaching level 6
+// ---- Notification state ----
+// Track who we've already notified + previous levels to detect crossing
 const notifiedPlayers = new Set();
+const previousLevels = new Map(); // key -> last level
 
-function checkForLevel6Players(data) {
-  if (!data || !Array.isArray(data.allPlayers)) return [];
-  
-  const notifications = [];
-  const chaosPlayers = data.allPlayers.filter(p => p.team === 'CHAOS');
-  
-  chaosPlayers.forEach(player => {
-    const playerId = player.riotId || player.summonerName;
-    const key = `${playerId}`;
-    
-    // If player just reached level 6 and we haven't notified yet
-    if (player.level === 6 && !notifiedPlayers.has(key)) {
+function collectNewLevel6Notifications(data) {
+  const out = [];
+  if (!data || !Array.isArray(data.allPlayers)) return out;
+
+  const chaos = data.allPlayers.filter(p => p.team === 'CHAOS');
+
+  chaos.forEach(p => {
+    const summ = p.riotId || p.summonerName || p.championName;
+    const key = String(summ);
+    const prev = previousLevels.get(key);
+    const cur = Number(p.level) || 0;
+
+    // First time we see this player, remember the level
+    if (prev == null) {
+      previousLevels.set(key, cur);
+      // If we started mid-game and they're already >=6, notify once
+      if (cur >= 6 && !notifiedPlayers.has(key)) {
+        notifiedPlayers.add(key);
+        out.push({
+          Champion: p.championName,
+          Summoner: key,
+          Position: p.position || 'NONE'
+        });
+      }
+      return;
+    }
+
+    // Detect crossing from <6 -> >=6
+    if (prev < 6 && cur >= 6 && !notifiedPlayers.has(key)) {
       notifiedPlayers.add(key);
-      notifications.push({
-        Champion: player.championName,
-        Summoner: playerId,
-        Position: player.position || 'NONE'
+      out.push({
+        Champion: p.championName,
+        Summoner: key,
+        Position: p.position || 'NONE'
       });
     }
+
+    // Update previous
+    previousLevels.set(key, cur);
   });
-  
-  return notifications;
+
+  return out;
 }
 
+// ---- Polling loop ----
 function startPolling(win) {
   const poll = async () => {
     try {
       const data = await fetchAllGameData();
-      const newLevel6Players = checkForLevel6Players(data);
 
-      // Send notifications for each new level 6 player
+      // DEBUG: comment these if too noisy
+      // console.log('[poll] players:', data?.allPlayers?.length ?? 0);
+
+      const toNotify = collectNewLevel6Notifications(data);
+
       if (!win || win.isDestroyed()) return;
-      for (const player of newLevel6Players) {
-        await win.webContents.executeJavaScript(`
-          window.showLevel6Notification(${JSON.stringify(player)});
-        `);
+      for (const player of toNotify) {
+        console.log('[notify]', player); // debug
+        await win.webContents.executeJavaScript(
+          `window.showLevel6Notification(${JSON.stringify(player)})`
+        );
       }
     } catch (err) {
-      // Silently continue polling even on errors (game might not be running)
+      console.log('[poll] fetch error:', err.message);
     } finally {
       if (win && !win.isDestroyed()) setTimeout(poll, POLL_MS);
     }
@@ -72,26 +100,25 @@ function startPolling(win) {
   poll();
 }
 
+// ---- Window ----
 function createWindow() {
-  const win = new BrowserWindow({
-    width: 350,
-    height: 150,
-    alwaysOnTop: true,
-    transparent: true,
-    frame: false,
-    hasShadow: false,
-    resizable: false,
-    webPreferences: { nodeIntegration: false, contextIsolation: true }
-  });
+    win = new BrowserWindow({
+        width: 380,
+        height: 400,         // was 150 — give room for multiple toasts
+        alwaysOnTop: true,
+        transparent: true,
+        frame: false,
+        hasShadow: false,
+        resizable: false,
+        webPreferences: { nodeIntegration: false, contextIsolation: true }
+      });
 
   win.loadFile('index.html');
 
-  // Ensure renderer is ready before we start polling
   win.webContents.once('dom-ready', () => {
+    console.log('[main] renderer ready, start polling');
     startPolling(win);
   });
-
-  return win;
 }
 
 app.whenReady().then(createWindow);
@@ -99,8 +126,6 @@ app.whenReady().then(createWindow);
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
-
 app.on('activate', () => {
-  // macOS: re-create a window when the dock icon is clicked and there are no other windows open.
   if (BrowserWindow.getAllWindows().length === 0) createWindow();
 });
